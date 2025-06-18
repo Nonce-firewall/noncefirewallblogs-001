@@ -1,3 +1,4 @@
+
 export interface MediaItem {
   id: string;
   type: 'image' | 'video';
@@ -115,6 +116,7 @@ export const mockPosts: BlogPost[] = [
     `,
     excerpt: "World leaders reach historic climate agreement with ambitious targets for carbon reduction and renewable energy adoption.",
     author: "Sarah Chen",
+    authorId: "admin-1",
     publishedAt: "2024-06-12T14:30:00Z",
     category: "News",
     tags: ["Climate", "Environment", "Politics"],
@@ -135,6 +137,7 @@ export const mockPosts: BlogPost[] = [
     `,
     excerpt: "Explore how remote work is reshaping the business landscape and what trends are emerging for the future of work.",
     author: "Mike Rodriguez",
+    authorId: "admin-1",
     publishedAt: "2024-06-10T09:15:00Z",
     category: "Business",
     tags: ["Remote Work", "Future", "Business Trends"],
