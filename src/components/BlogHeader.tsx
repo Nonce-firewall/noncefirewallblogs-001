@@ -1,7 +1,7 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 
 const BlogHeader = () => {
   const location = useLocation();
@@ -11,9 +11,13 @@ const BlogHeader = () => {
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-            <BookOpen className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">TechBlog</span>
+          <Link to="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+            <img 
+              src="/lovable-uploads/21cc5b21-d175-4e0e-8222-9b97c6c1071f.png" 
+              alt="Nonce Firewall Blogs Logo" 
+              className="h-10 w-10"
+            />
+            <span className="text-lg sm:text-xl font-bold text-gray-900">Nonce Firewall Blogs</span>
           </Link>
           
           <nav className="flex items-center space-x-4">

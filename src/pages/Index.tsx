@@ -2,6 +2,7 @@
 import { useState } from "react";
 import BlogHeader from "@/components/BlogHeader";
 import BlogPostCard from "@/components/BlogPostCard";
+import FeaturedPostsCarousel from "@/components/FeaturedPostsCarousel";
 import { blogStore } from "@/lib/blogStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,13 +26,13 @@ const Index = () => {
       <BlogHeader />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white py-20">
+      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 text-white py-16 sm:py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
-            Welcome to TechBlog
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
+            Welcome to Nonce Firewall Blogs
           </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-8 animate-fade-in">
-            Discover insights, tutorials, and the latest trends in technology
+          <p className="text-lg sm:text-xl md:text-2xl text-blue-100 mb-8 animate-fade-in">
+            Stay secure with cybersecurity insights, tech news, and industry updates
           </p>
           <div className="max-w-md mx-auto">
             <Input
@@ -44,6 +45,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Featured Posts Carousel */}
+      <FeaturedPostsCarousel posts={posts} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -84,8 +88,8 @@ const Index = () => {
             Stay Updated
           </h2>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Get the latest articles and insights delivered straight to your inbox. 
-            Join our community of developers and tech enthusiasts.
+            Get the latest cybersecurity insights and tech updates delivered straight to your inbox. 
+            Join our community of security professionals and tech enthusiasts.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
             <Input placeholder="Enter your email" className="flex-1" />

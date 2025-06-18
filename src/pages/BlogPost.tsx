@@ -3,13 +3,16 @@ import { useParams, Link } from "react-router-dom";
 import BlogHeader from "@/components/BlogHeader";
 import CommentsSection from "@/components/CommentsSection";
 import { blogStore } from "@/lib/blogStore";
+import { userStore } from "@/lib/userStore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { User } from "lucide-react";
 
 const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
   const post = id ? blogStore.getPostById(id) : null;
+  const currentUser = userStore.getCurrentUser();
 
   if (!post) {
     return (
@@ -62,9 +65,12 @@ const BlogPost = () => {
           
           <div className="flex items-center justify-between border-b border-gray-200 pb-6">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-white" />
-              </div>
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={currentUser.profilePicture} alt={currentUser.displayName} />
+                <AvatarFallback>
+                  <User className="h-6 w-6" />
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <p className="font-medium text-gray-900">By {post.author}</p>
                 <p className="text-sm text-gray-500">Published on {formatDate(post.publishedAt)}</p>
