@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import BlogHeader from "@/components/BlogHeader";
-import { blogStore } from "@/lib/blogStore";
+import { blogStore, categories } from "@/lib/blogStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { Upload, Image } from "lucide-react";
 
 const EditPost = () => {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ const EditPost = () => {
     imageUrl: "",
     published: false
   });
+
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -97,6 +100,38 @@ const EditPost = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Error",
+        description: "Please select an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const imageUrl = await blogStore.uploadImage(file);
+      setFormData(prev => ({ ...prev, imageUrl }));
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload image.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <BlogHeader />
@@ -140,12 +175,17 @@ const EditPost = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
-                  <Input
+                  <select
                     id="category"
                     value={formData.category}
                     onChange={(e) => handleChange("category", e.target.value)}
-                    placeholder="e.g., Technology"
-                  />
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className="space-y-2">
@@ -159,14 +199,55 @@ const EditPost = () => {
                 </div>
               </div>
 
+              {/* Image Upload */}
               <div className="space-y-2">
-                <Label htmlFor="imageUrl">Featured Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  value={formData.imageUrl}
-                  onChange={(e) => handleChange("imageUrl", e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                />
+                <Label>Featured Image</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                  {formData.imageUrl ? (
+                    <div className="space-y-4">
+                      <img 
+                        src={formData.imageUrl} 
+                        alt="Preview" 
+                        className="w-full h-48 object-cover rounded-lg"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => setFormData(prev => ({ ...prev, imageUrl: "" }))}
+                      >
+                        Remove Image
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <Image className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="mt-4">
+                        <Label htmlFor="image-upload" className="cursor-pointer">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            disabled={isUploading}
+                            className="cursor-pointer"
+                            asChild
+                          >
+                            <span>
+                              <Upload className="h-4 w-4 mr-2" />
+                              {isUploading ? "Uploading..." : "Upload Image"}
+                            </span>
+                          </Button>
+                        </Label>
+                        <Input
+                          id="image-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleImageUpload}
+                        />
+                      </div>
+                      <p className="text-sm text-gray-500 mt-2">PNG, JPG, GIF up to 10MB</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">

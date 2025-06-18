@@ -12,6 +12,20 @@ export interface BlogPost {
   published: boolean;
 }
 
+// Updated categories for broader content types
+export const categories = [
+  "Technology",
+  "News",
+  "Business",
+  "Health",
+  "Sports",
+  "Entertainment",
+  "Science",
+  "Politics",
+  "Travel",
+  "Lifestyle"
+];
+
 // Mock data for demonstration
 export const mockPosts: BlogPost[] = [
   {
@@ -38,41 +52,41 @@ export const mockPosts: BlogPost[] = [
   },
   {
     id: "2",
-    title: "The Art of Clean Code",
+    title: "Breaking: Global Climate Summit Reaches Historic Agreement",
     content: `
-      <p>Writing clean, readable code is one of the most important skills a developer can master. Clean code not only makes your applications more maintainable but also makes collaboration with other developers much smoother.</p>
+      <p>World leaders have reached a groundbreaking agreement at the Global Climate Summit, setting ambitious targets for carbon reduction and renewable energy adoption.</p>
       
-      <h2>Principles of Clean Code</h2>
-      <p>Clean code follows several key principles: it should be readable, simple, and focused. Each function should do one thing well, and variable names should clearly express their purpose.</p>
+      <h2>Key Commitments</h2>
+      <p>The agreement includes commitments from over 190 countries to reduce carbon emissions by 50% by 2030 and achieve net-zero emissions by 2050.</p>
       
-      <h2>Code Organization</h2>
-      <p>Proper code organization is crucial for maintaining large codebases. This includes logical file structure, consistent naming conventions, and proper separation of concerns.</p>
+      <h2>Implementation Plan</h2>
+      <p>The plan outlines specific steps for transitioning to renewable energy sources, implementing carbon pricing mechanisms, and supporting developing nations in their climate efforts.</p>
     `,
-    excerpt: "Learn the essential principles of writing clean, maintainable code that will make you a better developer.",
+    excerpt: "World leaders reach historic climate agreement with ambitious targets for carbon reduction and renewable energy adoption.",
     author: "Sarah Chen",
     publishedAt: "2024-06-12T14:30:00Z",
-    category: "Programming",
-    tags: ["Clean Code", "Best Practices", "Software Development"],
-    imageUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=400&fit=crop",
+    category: "News",
+    tags: ["Climate", "Environment", "Politics"],
+    imageUrl: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&h=400&fit=crop",
     published: true
   },
   {
     id: "3",
-    title: "Building Responsive User Interfaces",
+    title: "The Future of Remote Work: Trends and Predictions",
     content: `
-      <p>In today's multi-device world, creating responsive user interfaces is not just a nice-to-have feature—it's essential. Users expect seamless experiences across all their devices.</p>
+      <p>As we move forward in the post-pandemic world, remote work continues to reshape the business landscape. Companies are adapting to new models of work that prioritize flexibility and employee well-being.</p>
       
-      <h2>Mobile-First Approach</h2>
-      <p>Starting with mobile design constraints forces you to prioritize the most important content and features. This approach often leads to cleaner, more focused designs.</p>
+      <h2>Hybrid Work Models</h2>
+      <p>Many organizations are adopting hybrid models that combine remote and in-office work, allowing employees to choose the environment that best suits their productivity and lifestyle needs.</p>
       
-      <h2>Flexible Layouts</h2>
-      <p>Modern CSS tools like Flexbox and Grid make it easier than ever to create flexible, responsive layouts that adapt to different screen sizes.</p>
+      <h2>Technology Advancements</h2>
+      <p>New technologies are making remote collaboration more seamless than ever, with virtual reality meetings and AI-powered productivity tools leading the way.</p>
     `,
-    excerpt: "Master the art of creating responsive user interfaces that work beautifully on all devices.",
+    excerpt: "Explore how remote work is reshaping the business landscape and what trends are emerging for the future of work.",
     author: "Mike Rodriguez",
     publishedAt: "2024-06-10T09:15:00Z",
-    category: "Design",
-    tags: ["UI/UX", "Responsive Design", "CSS"],
+    category: "Business",
+    tags: ["Remote Work", "Future", "Business Trends"],
     imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop",
     published: true
   }
@@ -100,5 +114,16 @@ export const blogStore = {
   },
   deletePost: (id: string) => {
     posts = posts.filter(post => post.id !== id);
+  },
+  uploadImage: (file: File): Promise<string> => {
+    // In a real app, this would upload to a file storage service
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        resolve(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 };

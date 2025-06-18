@@ -1,6 +1,7 @@
 
 import { useParams, Link } from "react-router-dom";
 import BlogHeader from "@/components/BlogHeader";
+import CommentsSection from "@/components/CommentsSection";
 import { blogStore } from "@/lib/blogStore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -90,20 +91,23 @@ const BlogPost = () => {
         </div>
 
         {/* Article Content */}
-        <div className="bg-white rounded-lg shadow-sm border p-8">
+        <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
           <div 
             className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600 prose-strong:text-gray-900"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </div>
 
+        {/* Comments and Social Interactions */}
+        <CommentsSection postId={post.id} />
+
         {/* Article Footer */}
         <footer className="mt-12 pt-8 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Share this article</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Enjoyed this article?</h3>
               <div className="text-sm text-gray-600">
-                Found this helpful? Share it with your network!
+                Share it with your network and leave a comment below!
               </div>
             </div>
             <Link to="/">
