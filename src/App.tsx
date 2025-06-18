@@ -9,6 +9,7 @@ import BlogPost from "./pages/BlogPost";
 import AdminDashboard from "./pages/AdminDashboard";
 import CreatePost from "./pages/CreatePost";
 import EditPost from "./pages/EditPost";
+import SecureAdmin from "./pages/SecureAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/post/:id" element={<BlogPost />} />
+          <Route path="/secure-admin" element={<SecureAdmin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/create" element={<CreatePost />} />
           <Route path="/admin/edit/:id" element={<EditPost />} />

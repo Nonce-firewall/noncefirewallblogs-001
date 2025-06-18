@@ -10,6 +10,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 interface FeaturedPostsCarouselProps {
   posts: BlogPost[];
@@ -34,7 +36,16 @@ const FeaturedPostsCarousel = ({ posts }: FeaturedPostsCarouselProps) => {
           </p>
         </div>
         
-        <Carousel className="w-full max-w-5xl mx-auto">
+        <Carousel 
+          className="w-full max-w-5xl mx-auto"
+          plugins={[
+            Autoplay({
+              delay: 4000,
+              stopOnInteraction: true,
+              stopOnMouseEnter: true,
+            }),
+          ]}
+        >
           <CarouselContent>
             {posts.slice(0, 5).map((post) => (
               <CarouselItem key={post.id} className="md:basis-1/2 lg:basis-1/3">

@@ -3,6 +3,7 @@ import { useState } from "react";
 import BlogHeader from "@/components/BlogHeader";
 import BlogPostCard from "@/components/BlogPostCard";
 import FeaturedPostsCarousel from "@/components/FeaturedPostsCarousel";
+import ContactForm from "@/components/ContactForm";
 import { blogStore } from "@/lib/blogStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +98,9 @@ const Index = () => {
           </div>
         </section>
       </main>
+
+      {/* Contact Form */}
+      <ContactForm />
     </div>
   );
 };

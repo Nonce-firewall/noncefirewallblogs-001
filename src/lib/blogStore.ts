@@ -1,3 +1,9 @@
+export interface MediaItem {
+  id: string;
+  type: 'image' | 'video';
+  url: string;
+  caption?: string;
+}
 
 export interface BlogPost {
   id: string;
@@ -5,11 +11,33 @@ export interface BlogPost {
   content: string;
   excerpt: string;
   author: string;
+  authorId: string;
   publishedAt: string;
   category: string;
   tags: string[];
   imageUrl: string;
   published: boolean;
+  mediaItems?: MediaItem[];
+  socialHandles?: {
+    twitter?: string;
+    youtube?: string;
+    facebook?: string;
+    telegram?: string;
+  };
+}
+
+export interface BlogUser {
+  id: string;
+  email: string;
+  displayName: string;
+  profilePicture: string;
+  isAdmin: boolean;
+  socialHandles?: {
+    twitter?: string;
+    youtube?: string;
+    facebook?: string;
+    telegram?: string;
+  };
 }
 
 // Updated categories for broader content types
@@ -24,6 +52,23 @@ export const categories = [
   "Politics",
   "Travel",
   "Lifestyle"
+];
+
+// Mock users data
+let blogUsers: BlogUser[] = [
+  {
+    id: "admin-1",
+    email: "admin@noncefirewall.com",
+    displayName: "Admin User",
+    profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+    isAdmin: true,
+    socialHandles: {
+      twitter: "noncefirewall",
+      youtube: "noncefirewall",
+      facebook: "noncefirewall",
+      telegram: "noncefirewall"
+    }
+  }
 ];
 
 // Mock data for demonstration
@@ -43,12 +88,18 @@ export const mockPosts: BlogPost[] = [
       <p>The journey of web development is ongoing, and staying updated with the latest trends and technologies is essential for success in this field.</p>
     `,
     excerpt: "Explore the modern tools and techniques that are shaping the future of web development in this comprehensive guide.",
-    author: "Alex Johnson",
+    author: "Admin User",
+    authorId: "admin-1",
     publishedAt: "2024-06-15T10:00:00Z",
     category: "Technology",
     tags: ["React", "JavaScript", "Web Development"],
     imageUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=400&fit=crop",
-    published: true
+    published: true,
+    mediaItems: [],
+    socialHandles: {
+      twitter: "noncefirewall",
+      youtube: "noncefirewall"
+    }
   },
   {
     id: "2",
@@ -125,5 +176,25 @@ export const blogStore = {
       };
       reader.readAsDataURL(file);
     });
+  },
+  
+  // User management functions
+  getAllUsers: () => blogUsers,
+  getUserById: (id: string) => blogUsers.find(user => user.id === id),
+  createUser: (user: Omit<BlogUser, 'id'>) => {
+    const newUser = { ...user, id: Date.now().toString() };
+    blogUsers.push(newUser);
+    return newUser;
+  },
+  updateUser: (id: string, updates: Partial<BlogUser>) => {
+    const index = blogUsers.findIndex(user => user.id === id);
+    if (index !== -1) {
+      blogUsers[index] = { ...blogUsers[index], ...updates };
+      return blogUsers[index];
+    }
+    return null;
+  },
+  deleteUser: (id: string) => {
+    blogUsers = blogUsers.filter(user => user.id !== id);
   }
 };

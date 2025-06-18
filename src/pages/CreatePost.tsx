@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BlogHeader from "@/components/BlogHeader";
-import { blogStore, categories } from "@/lib/blogStore";
+import EnhancedPostEditor from "@/components/EnhancedPostEditor";
+import { blogStore, categories, MediaItem } from "@/lib/blogStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,12 +21,20 @@ const CreatePost = () => {
     content: "",
     excerpt: "",
     author: "",
+    authorId: "admin-1", // Default to admin user
     category: "",
     tags: "",
     imageUrl: "",
-    published: false
+    published: false,
+    socialHandles: {
+      twitter: "",
+      youtube: "",
+      facebook: "",
+      telegram: ""
+    }
   });
 
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -45,7 +53,11 @@ const CreatePost = () => {
       ...formData,
       tags: formData.tags.split(",").map(tag => tag.trim()).filter(Boolean),
       publishedAt: new Date().toISOString(),
-      excerpt: formData.excerpt || formData.content.substring(0, 200) + "..."
+      excerpt: formData.excerpt || formData.content.substring(0, 200) + "...",
+      mediaItems,
+      socialHandles: Object.fromEntries(
+        Object.entries(formData.socialHandles).filter(([_, value]) => value.trim() !== "")
+      )
     };
 
     blogStore.createPost(post);
@@ -60,6 +72,16 @@ const CreatePost = () => {
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSocialChange = (platform: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      socialHandles: {
+        ...prev.socialHandles,
+        [platform]: value
+      }
+    }));
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,7 +183,7 @@ const CreatePost = () => {
                 </div>
               </div>
 
-              {/* Image Upload */}
+              {/* Featured Image Upload */}
               <div className="space-y-2">
                 <Label>Featured Image</Label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
@@ -212,6 +234,33 @@ const CreatePost = () => {
                 </div>
               </div>
 
+              {/* Social Media Handles */}
+              <div className="space-y-4">
+                <Label>Social Media Handles (Optional)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    placeholder="X (Twitter) handle"
+                    value={formData.socialHandles.twitter}
+                    onChange={(e) => handleSocialChange("twitter", e.target.value)}
+                  />
+                  <Input
+                    placeholder="YouTube channel"
+                    value={formData.socialHandles.youtube}
+                    onChange={(e) => handleSocialChange("youtube", e.target.value)}
+                  />
+                  <Input
+                    placeholder="Facebook profile"
+                    value={formData.socialHandles.facebook}
+                    onChange={(e) => handleSocialChange("facebook", e.target.value)}
+                  />
+                  <Input
+                    placeholder="Telegram username"
+                    value={formData.socialHandles.telegram}
+                    onChange={(e) => handleSocialChange("telegram", e.target.value)}
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="excerpt">Excerpt</Label>
                 <Textarea
@@ -223,17 +272,13 @@ const CreatePost = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="content">Content *</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => handleChange("content", e.target.value)}
-                  placeholder="Write your post content here..."
-                  rows={15}
-                  required
-                />
-              </div>
+              {/* Enhanced Post Editor */}
+              <EnhancedPostEditor
+                content={formData.content}
+                mediaItems={mediaItems}
+                onContentChange={(content) => handleChange("content", content)}
+                onMediaChange={setMediaItems}
+              />
 
               <div className="flex items-center space-x-2">
                 <Switch

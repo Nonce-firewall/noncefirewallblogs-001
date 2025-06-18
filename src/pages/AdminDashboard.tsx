@@ -1,17 +1,29 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import BlogHeader from "@/components/BlogHeader";
 import ProfileSettings from "@/components/ProfileSettings";
+import UserManagement from "@/components/UserManagement";
 import { blogStore } from "@/lib/blogStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pencil, BookOpen, User } from "lucide-react";
+import { Pencil, BookOpen, User, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
-  const [posts] = useState(blogStore.getAllPosts());
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [posts, setPosts] = useState(blogStore.getAllPosts());
+  
+  // Check authentication
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem("adminAuthenticated");
+    if (!isAuthenticated) {
+      navigate("/secure-admin");
+    }
+  }, [navigate]);
   
   const stats = {
     totalPosts: posts.length,
@@ -27,21 +39,50 @@ const AdminDashboard = () => {
     });
   };
 
+  const handleDeletePost = (postId: string) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    if (window.confirm(`Are you sure you want to delete "${post.title}"?`)) {
+      blogStore.deletePost(postId);
+      setPosts(blogStore.getAllPosts());
+      toast({
+        title: "Success",
+        description: "Post deleted successfully!",
+      });
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("adminAuthenticated");
+    navigate("/");
+    toast({
+      title: "Logged out",
+      description: "You have been logged out successfully.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <BlogHeader />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage your blog posts, content, and profile settings</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+            <p className="text-gray-600">Manage your blog posts, content, and profile settings</p>
+          </div>
+          <Button variant="outline" onClick={handleLogout}>
+            Logout
+          </Button>
         </div>
 
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
           </TabsList>
 
@@ -137,12 +178,24 @@ const AdminDashboard = () => {
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeletePost(post.id)}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="users">
+            <UserManagement />
           </TabsContent>
 
           <TabsContent value="profile">

@@ -2,6 +2,7 @@
 import { useParams, Link } from "react-router-dom";
 import BlogHeader from "@/components/BlogHeader";
 import CommentsSection from "@/components/CommentsSection";
+import SocialMediaLinks from "@/components/SocialMediaLinks";
 import { blogStore } from "@/lib/blogStore";
 import { userStore } from "@/lib/userStore";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
   const post = id ? blogStore.getPostById(id) : null;
   const currentUser = userStore.getCurrentUser();
+  const postAuthor = post ? blogStore.getUserById(post.authorId) : null;
 
   if (!post) {
     return (
@@ -35,6 +37,41 @@ const BlogPost = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const renderMediaItem = (item: any) => {
+    if (item.type === 'image') {
+      return (
+        <div className="my-6">
+          <img 
+            src={item.url} 
+            alt={item.caption || "Post image"} 
+            className="w-full h-auto rounded-lg shadow-lg"
+          />
+          {item.caption && (
+            <p className="text-sm text-gray-600 mt-2 text-center italic">{item.caption}</p>
+          )}
+        </div>
+      );
+    } else if (item.type === 'video') {
+      const videoId = item.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
+      return (
+        <div className="my-6">
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title={item.caption || "YouTube video"}
+              className="absolute top-0 left-0 w-full h-full rounded-lg"
+              allowFullScreen
+            />
+          </div>
+          {item.caption && (
+            <p className="text-sm text-gray-600 mt-2 text-center italic">{item.caption}</p>
+          )}
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -66,7 +103,7 @@ const BlogPost = () => {
           <div className="flex items-center justify-between border-b border-gray-200 pb-6">
             <div className="flex items-center space-x-3">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={currentUser.profilePicture} alt={currentUser.displayName} />
+                <AvatarImage src={postAuthor?.profilePicture || currentUser.profilePicture} alt={post.author} />
                 <AvatarFallback>
                   <User className="h-6 w-6" />
                 </AvatarFallback>
@@ -102,7 +139,25 @@ const BlogPost = () => {
             className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-blue-600 prose-strong:text-gray-900"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
+          
+          {/* Additional Media Items */}
+          {post.mediaItems && post.mediaItems.length > 0 && (
+            <div className="mt-8">
+              {post.mediaItems.map((item) => (
+                <div key={item.id}>
+                  {renderMediaItem(item)}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Social Media Links */}
+        {post.socialHandles && (
+          <div className="bg-white rounded-lg shadow-sm border p-8 mb-8">
+            <SocialMediaLinks socialHandles={post.socialHandles} />
+          </div>
+        )}
 
         {/* Comments and Social Interactions */}
         <CommentsSection postId={post.id} />
