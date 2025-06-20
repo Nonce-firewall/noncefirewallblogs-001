@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Image, Video, X } from "lucide-react";
+import { Upload, Image, Video, X, Link } from "lucide-react";
 import { blogStore } from "@/lib/blogStore";
 
 interface MediaItem {
@@ -13,6 +12,7 @@ interface MediaItem {
   type: 'image' | 'video';
   url: string;
   caption?: string;
+  paragraphText?: string;
 }
 
 interface EnhancedPostEditorProps {
@@ -26,6 +26,8 @@ const EnhancedPostEditor = ({ content, mediaItems, onContentChange, onMediaChang
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -112,6 +114,33 @@ const EnhancedPostEditor = ({ content, mediaItems, onContentChange, onMediaChang
     ));
   };
 
+  const updateMediaParagraph = (id: string, paragraphText: string) => {
+    onMediaChange(mediaItems.map(item => 
+      item.id === id ? { ...item, paragraphText } : item
+    ));
+  };
+
+  const insertLinkText = () => {
+    if (!linkText.trim() || !linkUrl.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter both link text and URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const linkMarkup = `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">${linkText}</a>`;
+    onContentChange(content + linkMarkup);
+    setLinkText("");
+    setLinkUrl("");
+    
+    toast({
+      title: "Success",
+      description: "Link inserted into content!",
+    });
+  };
+
   const renderMediaItem = (item: MediaItem) => {
     if (item.type === 'image') {
       return (
@@ -148,6 +177,33 @@ const EnhancedPostEditor = ({ content, mediaItems, onContentChange, onMediaChang
           rows={10}
           required
         />
+      </div>
+
+      {/* Link Text Insertion */}
+      <div className="space-y-4">
+        <Label>Insert Link Text</Label>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Link text"
+            value={linkText}
+            onChange={(e) => setLinkText(e.target.value)}
+            className="flex-1"
+          />
+          <Input
+            placeholder="URL"
+            value={linkUrl}
+            onChange={(e) => setLinkUrl(e.target.value)}
+            className="flex-1"
+          />
+          <Button 
+            type="button" 
+            variant="outline"
+            onClick={insertLinkText}
+          >
+            <Link className="h-4 w-4 mr-2" />
+            Insert Link
+          </Button>
+        </div>
       </div>
 
       {/* Media Upload Section */}
@@ -222,6 +278,12 @@ const EnhancedPostEditor = ({ content, mediaItems, onContentChange, onMediaChang
                   placeholder="Caption (optional)"
                   value={item.caption || ''}
                   onChange={(e) => updateMediaCaption(item.id, e.target.value)}
+                />
+                <Textarea
+                  placeholder="Additional paragraph text (optional)"
+                  value={item.paragraphText || ''}
+                  onChange={(e) => updateMediaParagraph(item.id, e.target.value)}
+                  rows={3}
                 />
               </div>
             ))}

@@ -1,64 +1,31 @@
-
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import BlogHeader from "@/components/BlogHeader";
-import ProfileSettings from "@/components/ProfileSettings";
 import UserManagement from "@/components/UserManagement";
+import PromotionSettings from "@/components/PromotionSettings";
+import ProfileSettings from "@/components/ProfileSettings";
 import { blogStore } from "@/lib/blogStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pencil, BookOpen, User, Trash2 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
+import { PlusCircle, Edit, Trash2, Eye, Users, Settings, Megaphone } from "lucide-react";
 
 const AdminDashboard = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
   const [posts, setPosts] = useState(blogStore.getAllPosts());
-  
-  // Check authentication
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem("adminAuthenticated");
-    if (!isAuthenticated) {
-      navigate("/secure-admin");
+
+  const handleDeletePost = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this post?")) {
+      blogStore.deletePost(id);
+      setPosts(blogStore.getAllPosts());
     }
-  }, [navigate]);
-  
-  const stats = {
-    totalPosts: posts.length,
-    publishedPosts: posts.filter(p => p.published).length,
-    draftPosts: posts.filter(p => !p.published).length,
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
       month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const handleDeletePost = (postId: string) => {
-    const post = posts.find(p => p.id === postId);
-    if (!post) return;
-
-    if (window.confirm(`Are you sure you want to delete "${post.title}"?`)) {
-      blogStore.deletePost(postId);
-      setPosts(blogStore.getAllPosts());
-      toast({
-        title: "Success",
-        description: "Post deleted successfully!",
-      });
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("adminAuthenticated");
-    navigate("/");
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully.",
+      day: 'numeric'
     });
   };
 
@@ -67,128 +34,101 @@ const AdminDashboard = () => {
       <BlogHeader />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Manage your blog posts, content, and profile settings</p>
-          </div>
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
+          <p className="text-gray-600">Manage your blog posts, users, and settings</p>
         </div>
 
-        <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="posts">Posts</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
+        <Tabs defaultValue="posts" className="space-y-6">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full">
+            <TabsTrigger value="posts" className="flex items-center gap-2">
+              <Edit className="h-4 w-4" />
+              <span className="hidden sm:inline">Posts</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">Users</span>
+            </TabsTrigger>
+            <TabsTrigger value="promotions" className="flex items-center gap-2">
+              <Megaphone className="h-4 w-4" />
+              <span className="hidden sm:inline">Promotions</span>
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Profile</span>
+            </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
-                  <BookOpen className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalPosts}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Published</CardTitle>
-                  <User className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.publishedPosts}</div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Drafts</CardTitle>
-                  <Pencil className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">{stats.draftPosts}</div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-4">
-                  <Link to="/admin/create">
-                    <Button>Create New Post</Button>
-                  </Link>
-                  <Link to="/">
-                    <Button variant="outline">View Blog</Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           <TabsContent value="posts">
-            {/* Posts List */}
             <Card>
               <CardHeader>
-                <CardTitle>All Posts</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Blog Posts</span>
+                  <Link to="/admin/create">
+                    <Button className="flex items-center space-x-2">
+                      <PlusCircle className="h-4 w-4" />
+                      <span>New Post</span>
+                    </Button>
+                  </Link>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {posts.map((post) => (
-                    <div 
-                      key={post.id} 
-                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-medium text-gray-900">{post.title}</h3>
-                          <Badge variant={post.published ? "default" : "secondary"}>
-                            {post.published ? "Published" : "Draft"}
-                          </Badge>
-                          <Badge variant="outline">{post.category}</Badge>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{post.excerpt}</p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <span>By {post.author}</span>
-                          <span>•</span>
-                          <span>{formatDate(post.publishedAt)}</span>
-                          <span>•</span>
-                          <span>{post.tags.join(", ")}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 ml-4">
-                        <Link to={`/post/${post.id}`}>
-                          <Button variant="outline" size="sm">View</Button>
-                        </Link>
-                        <Link to={`/admin/edit/${post.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeletePost(post.id)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Title
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Category
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Date
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {posts.map((post) => (
+                        <tr key={post.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{post.title}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <Badge variant="secondary">{post.category}</Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                            {formatDate(post.publishedAt)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                            <Link to={`/post/${post.id}`}>
+                              <Button size="sm" variant="ghost">
+                                <Eye className="h-4 w-4 mr-2" />
+                                View
+                              </Button>
+                            </Link>
+                            <Link to={`/admin/edit/${post.id}`}>
+                              <Button size="sm">
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </Button>
+                            </Link>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeletePost(post.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
@@ -196,6 +136,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="promotions">
+            <PromotionSettings />
           </TabsContent>
 
           <TabsContent value="profile">

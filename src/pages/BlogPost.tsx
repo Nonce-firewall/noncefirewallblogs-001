@@ -1,20 +1,30 @@
-
-import { useParams, Link } from "react-router-dom";
+import { useState, useParams, Link } from "react-router-dom";
 import BlogHeader from "@/components/BlogHeader";
 import CommentsSection from "@/components/CommentsSection";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
+import YouTubeModal from "@/components/YouTubeModal";
+import PromotionalPopup from "@/components/PromotionalPopup";
 import { blogStore } from "@/lib/blogStore";
 import { userStore } from "@/lib/userStore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { User, Play } from "lucide-react";
 
 const BlogPost = () => {
   const { id } = useParams<{ id: string }>();
   const post = id ? blogStore.getPostById(id) : null;
   const currentUser = userStore.getCurrentUser();
   const postAuthor = post ? blogStore.getUserById(post.authorId) : null;
+  
+  const [youtubeModal, setYoutubeModal] = useState<{isOpen: boolean, url: string, title?: string}>({
+    isOpen: false,
+    url: '',
+    title: ''
+  });
+
+  // Load promotion settings
+  const promotionSettings = JSON.parse(localStorage.getItem('promotionSettings') || '{"isEnabled": false}');
 
   if (!post) {
     return (
@@ -51,22 +61,43 @@ const BlogPost = () => {
           {item.caption && (
             <p className="text-sm text-gray-600 mt-2 text-center italic">{item.caption}</p>
           )}
+          {item.paragraphText && (
+            <div 
+              className="mt-4 prose prose-sm max-w-none text-gray-700"
+              dangerouslySetInnerHTML={{ __html: item.paragraphText }}
+            />
+          )}
         </div>
       );
     } else if (item.type === 'video') {
       const videoId = item.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
       return (
         <div className="my-4 sm:my-6">
-          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-            <iframe
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title={item.caption || "YouTube video"}
-              className="absolute top-0 left-0 w-full h-full rounded-lg"
-              allowFullScreen
-            />
+          <div className="relative w-full group cursor-pointer" style={{ paddingBottom: '56.25%' }}>
+            <div 
+              className="absolute inset-0 bg-black rounded-lg overflow-hidden"
+              onClick={() => setYoutubeModal({isOpen: true, url: item.url, title: item.caption})}
+            >
+              <img 
+                src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+                alt="Video thumbnail"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center group-hover:bg-opacity-50 transition-all">
+                <div className="bg-red-600 rounded-full p-4 group-hover:scale-110 transition-transform">
+                  <Play className="h-8 w-8 text-white fill-current" />
+                </div>
+              </div>
+            </div>
           </div>
           {item.caption && (
             <p className="text-sm text-gray-600 mt-2 text-center italic">{item.caption}</p>
+          )}
+          {item.paragraphText && (
+            <div 
+              className="mt-4 prose prose-sm max-w-none text-gray-700"
+              dangerouslySetInnerHTML={{ __html: item.paragraphText }}
+            />
           )}
         </div>
       );
@@ -177,6 +208,17 @@ const BlogPost = () => {
           </div>
         </footer>
       </article>
+
+      {/* YouTube Modal */}
+      <YouTubeModal
+        isOpen={youtubeModal.isOpen}
+        onClose={() => setYoutubeModal({isOpen: false, url: '', title: ''})}
+        videoUrl={youtubeModal.url}
+        title={youtubeModal.title}
+      />
+
+      {/* Promotional Popup */}
+      <PromotionalPopup {...promotionSettings} />
     </div>
   );
 };
