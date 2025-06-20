@@ -1,4 +1,5 @@
-import { useState, useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
 import BlogHeader from "@/components/BlogHeader";
 import CommentsSection from "@/components/CommentsSection";
 import SocialMediaLinks from "@/components/SocialMediaLinks";

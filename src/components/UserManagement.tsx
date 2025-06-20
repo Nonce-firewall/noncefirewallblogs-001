@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,8 +59,7 @@ const UserManagement = () => {
       email: newUserEmail,
       displayName: newUserName,
       profilePicture: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
-      isAdmin: false,
-      password: generatedPassword
+      isAdmin: false
     });
 
     setUsers(blogStore.getAllUsers());
