@@ -7,19 +7,19 @@ export interface BlogPost {
   id: string;
   title: string;
   slug: string;
-  excerpt: string;
-  content: string;
-  image_url: string;
+  excerpt: string | null;
+  content: string | null;
+  image_url: string | null;
   author_id: string;
-  author_name: string;
-  category: string;
-  tags: string[];
-  published_at: string;
-  is_published: boolean;
+  author_name: string | null;
+  category: string | null;
+  tags: string[] | null;
+  published_at: string | null;
+  is_published: boolean | null;
   social_handles?: any;
-  media_items?: any[];
-  created_at: string;
-  updated_at: string;
+  media_items?: any;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export const useBlogPosts = () => {
