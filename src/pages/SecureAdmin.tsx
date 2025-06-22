@@ -26,25 +26,6 @@ const SecureAdmin = () => {
     try {
       console.log("=== LOGIN ATTEMPT ===");
       console.log("Email being used:", credentials.email);
-      console.log("Email length:", credentials.email.length);
-      console.log("Email trimmed:", credentials.email.trim());
-      console.log("Password length:", credentials.password.length);
-      
-      // Check if user exists first
-      const { data: existingUsers, error: usersError } = await supabase
-        .from('profiles')
-        .select('email, is_admin')
-        .eq('email', credentials.email.trim());
-      
-      console.log("User lookup result:", existingUsers);
-      console.log("User lookup error:", usersError);
-      
-      if (!existingUsers || existingUsers.length === 0) {
-        throw new Error('No user found with this email address. Please check your email or sign up first.');
-      }
-      
-      const userProfile = existingUsers[0];
-      console.log("Found user profile:", userProfile);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: credentials.email.trim(),
@@ -53,25 +34,30 @@ const SecureAdmin = () => {
 
       if (error) {
         console.error("Supabase auth error:", error);
-        console.error("Error code:", error.message);
-        
-        if (error.message.includes('Invalid login credentials')) {
-          throw new Error('The email or password you entered is incorrect. Please check your credentials and try again.');
-        }
-        throw error;
+        throw new Error(error.message);
       }
 
       console.log("Login successful, user ID:", data.user.id);
-      console.log("User email from auth:", data.user.email);
 
-      // Check admin status from the profile we already fetched
-      if (!userProfile.is_admin) {
+      // Check if user is admin
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', data.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        throw new Error('Unable to verify admin status');
+      }
+
+      if (!profile?.is_admin) {
         console.log("User is not admin, signing out");
         await supabase.auth.signOut();
         throw new Error('Access denied. Admin privileges required.');
       }
 
-      console.log("Admin access confirmed for:", userProfile.email);
+      console.log("Admin access confirmed");
       toast({
         title: "Success",
         description: "Welcome to the admin panel!",
@@ -79,9 +65,7 @@ const SecureAdmin = () => {
       navigate("/admin");
     } catch (error: any) {
       console.error("=== LOGIN ERROR ===");
-      console.error("Error type:", typeof error);
       console.error("Error message:", error.message);
-      console.error("Full error:", error);
       
       toast({
         title: "Login Failed",
@@ -116,6 +100,7 @@ const SecureAdmin = () => {
                 onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="Enter your admin email"
                 required
+                disabled={loading}
               />
             </div>
             
@@ -130,6 +115,7 @@ const SecureAdmin = () => {
                   placeholder="Enter your password"
                   className="pr-10"
                   required
+                  disabled={loading}
                 />
                 <Button
                   type="button"
@@ -137,6 +123,7 @@ const SecureAdmin = () => {
                   size="sm"
                   className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={loading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4 text-gray-400" />
