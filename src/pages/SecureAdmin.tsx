@@ -24,33 +24,63 @@ const SecureAdmin = () => {
     setLoading(true);
     
     try {
+      console.log("Attempting login with email:", credentials.email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Login error:", error);
+        throw error;
+      }
 
-      // Check if user is admin
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', data.user.id)
-        .single();
+      console.log("Login successful, user:", data.user);
 
-      if (profileError) throw profileError;
+      // Wait a moment for the profile to be loaded by the AuthContext
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-      if (!profile.is_admin) {
+      // Check if user is admin with retries
+      let attempts = 0;
+      let profile = null;
+      
+      while (attempts < 3 && !profile) {
+        console.log(`Checking admin status, attempt ${attempts + 1}`);
+        
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('is_admin, email')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          if (attempts === 2) throw new Error('Could not verify admin status. Please try again.');
+        } else {
+          profile = profileData;
+          console.log("Profile found:", profile);
+        }
+        
+        attempts++;
+        if (!profile && attempts < 3) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
+      if (!profile || !profile.is_admin) {
         await supabase.auth.signOut();
         throw new Error('Access denied. Admin privileges required.');
       }
 
+      console.log("Admin access confirmed");
       toast({
         title: "Success",
         description: "Welcome to the admin panel!",
       });
       navigate("/admin");
     } catch (error: any) {
+      console.error("Full login error:", error);
       toast({
         title: "Error",
         description: error.message || "Invalid credentials. Please try again.",
