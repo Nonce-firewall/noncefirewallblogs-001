@@ -24,66 +24,68 @@ const SecureAdmin = () => {
     setLoading(true);
     
     try {
-      console.log("Attempting login with email:", credentials.email);
+      console.log("=== LOGIN ATTEMPT ===");
+      console.log("Email being used:", credentials.email);
+      console.log("Email length:", credentials.email.length);
+      console.log("Email trimmed:", credentials.email.trim());
+      console.log("Password length:", credentials.password.length);
+      
+      // Check if user exists first
+      const { data: existingUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('email, is_admin')
+        .eq('email', credentials.email.trim());
+      
+      console.log("User lookup result:", existingUsers);
+      console.log("User lookup error:", usersError);
+      
+      if (!existingUsers || existingUsers.length === 0) {
+        throw new Error('No user found with this email address. Please check your email or sign up first.');
+      }
+      
+      const userProfile = existingUsers[0];
+      console.log("Found user profile:", userProfile);
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
+        email: credentials.email.trim(),
         password: credentials.password,
       });
 
       if (error) {
-        console.error("Login error:", error);
+        console.error("Supabase auth error:", error);
+        console.error("Error code:", error.message);
+        
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('The email or password you entered is incorrect. Please check your credentials and try again.');
+        }
         throw error;
       }
 
-      console.log("Login successful, user:", data.user);
+      console.log("Login successful, user ID:", data.user.id);
+      console.log("User email from auth:", data.user.email);
 
-      // Wait a moment for the profile to be loaded by the AuthContext
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Check if user is admin with retries
-      let attempts = 0;
-      let profile = null;
-      
-      while (attempts < 3 && !profile) {
-        console.log(`Checking admin status, attempt ${attempts + 1}`);
-        
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_admin, email')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error("Profile fetch error:", profileError);
-          if (attempts === 2) throw new Error('Could not verify admin status. Please try again.');
-        } else {
-          profile = profileData;
-          console.log("Profile found:", profile);
-        }
-        
-        attempts++;
-        if (!profile && attempts < 3) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-
-      if (!profile || !profile.is_admin) {
+      // Check admin status from the profile we already fetched
+      if (!userProfile.is_admin) {
+        console.log("User is not admin, signing out");
         await supabase.auth.signOut();
         throw new Error('Access denied. Admin privileges required.');
       }
 
-      console.log("Admin access confirmed");
+      console.log("Admin access confirmed for:", userProfile.email);
       toast({
         title: "Success",
         description: "Welcome to the admin panel!",
       });
       navigate("/admin");
     } catch (error: any) {
-      console.error("Full login error:", error);
+      console.error("=== LOGIN ERROR ===");
+      console.error("Error type:", typeof error);
+      console.error("Error message:", error.message);
+      console.error("Full error:", error);
+      
       toast({
-        title: "Error",
-        description: error.message || "Invalid credentials. Please try again.",
+        title: "Login Failed",
+        description: error.message || "Unable to sign in. Please check your credentials.",
         variant: "destructive",
       });
     } finally {
@@ -150,6 +152,10 @@ const SecureAdmin = () => {
               {loading ? "Signing In..." : "Sign In"}
             </Button>
           </form>
+          
+          <div className="mt-4 text-center text-sm text-gray-600">
+            <p>If you're having trouble logging in, check the browser console for detailed error information.</p>
+          </div>
         </CardContent>
       </Card>
     </div>
