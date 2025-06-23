@@ -29,13 +29,21 @@ export const useBlogPosts = () => {
 
   const fetchPosts = async () => {
     try {
+      setLoading(true);
+      console.log('Fetching published posts...');
+      
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .eq('is_published', true)
         .order('published_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching posts:', error);
+        throw error;
+      }
+
+      console.log('Fetched posts:', data);
       setPosts(data || []);
     } catch (error: any) {
       console.error('Error fetching posts:', error);
@@ -44,8 +52,9 @@ export const useBlogPosts = () => {
         description: "Failed to load blog posts",
         variant: "destructive",
       });
+      setPosts([]); // Set empty array on error
     } finally {
-      setLoading(false);
+      setLoading(false); // Always set loading to false
     }
   };
 
@@ -63,12 +72,20 @@ export const useAdminBlogPosts = () => {
 
   const fetchAllPosts = async () => {
     try {
+      setLoading(true);
+      console.log('Fetching all posts for admin...');
+      
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching admin posts:', error);
+        throw error;
+      }
+
+      console.log('Fetched admin posts:', data);
       setPosts(data || []);
     } catch (error: any) {
       console.error('Error fetching admin posts:', error);
@@ -77,8 +94,9 @@ export const useAdminBlogPosts = () => {
         description: "Failed to load posts",
         variant: "destructive",
       });
+      setPosts([]); // Set empty array on error
     } finally {
-      setLoading(false);
+      setLoading(false); // Always set loading to false
     }
   };
 

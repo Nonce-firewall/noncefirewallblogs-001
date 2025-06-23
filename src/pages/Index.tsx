@@ -59,42 +59,65 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Posts Carousel */}
-      <FeaturedPostsCarousel posts={posts.map(post => ({
-        id: post.id,
-        title: post.title,
-        excerpt: post.excerpt || "",
-        content: post.content || "",
-        author: post.author_name || "Unknown",
-        authorId: post.author_id,
-        category: post.category || "General",
-        tags: post.tags || [],
-        imageUrl: post.image_url || "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop",
-        publishedAt: post.published_at || post.created_at || new Date().toISOString(),
-        published: post.is_published || false,
-        mediaItems: post.media_items || [],
-        socialHandles: post.social_handles || {}
-      }))} />
+      {/* Featured Posts Carousel - Only show if there are posts */}
+      {posts.length > 0 && (
+        <FeaturedPostsCarousel posts={posts.map(post => ({
+          id: post.id,
+          title: post.title,
+          excerpt: post.excerpt || "",
+          content: post.content || "",
+          author: post.author_name || "Unknown",
+          authorId: post.author_id,
+          category: post.category || "General",
+          tags: post.tags || [],
+          imageUrl: post.image_url || "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop",
+          publishedAt: post.published_at || post.created_at || new Date().toISOString(),
+          published: post.is_published || false,
+          mediaItems: post.media_items || [],
+          socialHandles: post.social_handles || {}
+        }))} />
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2 mb-6 sm:mb-8">
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedCategory(category)}
-              className="capitalize text-xs sm:text-sm"
-            >
-              {category}
-            </Button>
-          ))}
-        </div>
+        {/* Category Filter - Only show if there are posts */}
+        {posts.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6 sm:mb-8">
+            {categories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category)}
+                className="capitalize text-xs sm:text-sm"
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+        )}
 
-        {/* Posts Grid */}
-        {filteredPosts.length > 0 ? (
+        {/* Posts Grid or Empty State */}
+        {posts.length === 0 ? (
+          <div className="text-center py-16 sm:py-24 px-4">
+            <div className="max-w-md mx-auto">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">No posts yet</h3>
+              <p className="text-gray-600 mb-8">
+                Welcome to Nonce Firewall Blogs! We're just getting started. 
+                Check back soon for cybersecurity insights, tech news, and industry updates.
+              </p>
+              <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+                <p className="text-blue-800 text-sm">
+                  <strong>Admin:</strong> Ready to publish your first post? 
+                  <br />
+                  <a href="/secure-admin" className="underline hover:text-blue-600">
+                    Sign in to the admin panel
+                  </a> to get started.
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : filteredPosts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {filteredPosts.map((post) => (
               <div key={post.id} className="animate-fade-in">
@@ -123,20 +146,22 @@ const Index = () => {
           </div>
         )}
 
-        {/* Call to Action */}
-        <section className="mt-16 sm:mt-20 bg-white rounded-2xl shadow-sm border p-6 sm:p-8 text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
-            Stay Updated
-          </h2>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto text-sm sm:text-base">
-            Get the latest cybersecurity insights and tech updates delivered straight to your inbox. 
-            Join our community of security professionals and tech enthusiasts.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <Input placeholder="Enter your email" className="flex-1" />
-            <Button className="sm:w-auto">Subscribe</Button>
-          </div>
-        </section>
+        {/* Call to Action - Only show if there are posts */}
+        {posts.length > 0 && (
+          <section className="mt-16 sm:mt-20 bg-white rounded-2xl shadow-sm border p-6 sm:p-8 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
+              Stay Updated
+            </h2>
+            <p className="text-gray-600 mb-6 max-w-2xl mx-auto text-sm sm:text-base">
+              Get the latest cybersecurity insights and tech updates delivered straight to your inbox. 
+              Join our community of security professionals and tech enthusiasts.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+              <Input placeholder="Enter your email" className="flex-1" />
+              <Button className="sm:w-auto">Subscribe</Button>
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Contact Form */}
