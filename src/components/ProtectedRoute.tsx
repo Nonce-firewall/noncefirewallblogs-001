@@ -15,17 +15,20 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
   useEffect(() => {
     if (!loading) {
       if (!user) {
+        console.log('No user, redirecting to auth');
         navigate('/auth');
         return;
       }
 
       if (requireAdmin && !profile?.is_admin) {
+        console.log('Admin required but user is not admin, redirecting');
         navigate('/secure-admin');
         return;
       }
     }
   }, [user, profile, loading, navigate, requireAdmin]);
 
+  // Show loading while authentication state is being determined
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -37,6 +40,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     );
   }
 
+  // Don't render anything while redirecting
   if (!user || (requireAdmin && !profile?.is_admin)) {
     return null;
   }
