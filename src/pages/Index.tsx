@@ -4,23 +4,35 @@ import BlogHeader from "@/components/BlogHeader";
 import BlogPostCard from "@/components/BlogPostCard";
 import FeaturedPostsCarousel from "@/components/FeaturedPostsCarousel";
 import ContactForm from "@/components/ContactForm";
-import { blogStore } from "@/lib/blogStore";
+import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Index = () => {
+  const { posts, loading } = useBlogPosts();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   
-  const posts = blogStore.getPublishedPosts();
-  const categories = ["all", ...Array.from(new Set(posts.map(post => post.category)))];
+  const categories = ["all", ...Array.from(new Set(posts.map(post => post.category || "").filter(Boolean)))];
   
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+                         (post.excerpt || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "all" || post.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <BlogHeader />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading posts...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -48,7 +60,21 @@ const Index = () => {
       </section>
 
       {/* Featured Posts Carousel */}
-      <FeaturedPostsCarousel posts={posts} />
+      <FeaturedPostsCarousel posts={posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        excerpt: post.excerpt || "",
+        content: post.content || "",
+        author: post.author_name || "Unknown",
+        authorId: post.author_id,
+        category: post.category || "General",
+        tags: post.tags || [],
+        imageUrl: post.image_url || "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop",
+        publishedAt: post.published_at || post.created_at || new Date().toISOString(),
+        published: post.is_published || false,
+        mediaItems: post.media_items || [],
+        socialHandles: post.social_handles || {}
+      }))} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -72,7 +98,21 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {filteredPosts.map((post) => (
               <div key={post.id} className="animate-fade-in">
-                <BlogPostCard post={post} />
+                <BlogPostCard post={{
+                  id: post.id,
+                  title: post.title,
+                  excerpt: post.excerpt || "",
+                  content: post.content || "",
+                  author: post.author_name || "Unknown",
+                  authorId: post.author_id,
+                  category: post.category || "General",
+                  tags: post.tags || [],
+                  imageUrl: post.image_url || "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop",
+                  publishedAt: post.published_at || post.created_at || new Date().toISOString(),
+                  published: post.is_published || false,
+                  mediaItems: post.media_items || [],
+                  socialHandles: post.social_handles || {}
+                }} />
               </div>
             ))}
           </div>
