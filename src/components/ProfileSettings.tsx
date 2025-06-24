@@ -9,9 +9,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { User, Upload } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProfileSettings = () => {
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, user } = useAuth();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     display_name: '',
@@ -43,7 +44,7 @@ const ProfileSettings = () => {
 
   const handleProfilePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !user) return;
 
     if (!file.type.startsWith('image/')) {
       toast({
@@ -54,25 +55,62 @@ const ProfileSettings = () => {
       return;
     }
 
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        title: "Error",
+        description: "File size must be less than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsUploading(true);
     try {
-      // For now, we'll use a placeholder URL since we haven't set up Supabase storage yet
-      // In a real implementation, you would upload to Supabase storage here
-      const placeholderUrl = `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face&t=${Date.now()}`;
+      console.log('Starting profile picture upload...');
       
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `profile-pictures/${fileName}`;
+
+      // Upload file to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      console.log('File uploaded successfully, public URL:', publicUrl);
+      
+      // Update form data with new URL
       setFormData(prev => ({ 
         ...prev, 
-        profile_picture: placeholderUrl 
+        profile_picture: publicUrl 
       }));
+      
+      // Immediately update the profile in the database
+      await updateProfile({ profile_picture: publicUrl });
       
       toast({
         title: "Success",
         description: "Profile picture uploaded successfully!",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Profile picture upload error:', error);
       toast({
         title: "Error",
-        description: "Failed to upload profile picture.",
+        description: error.message || "Failed to upload profile picture.",
         variant: "destructive",
       });
     } finally {
