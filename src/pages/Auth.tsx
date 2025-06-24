@@ -7,12 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock, Mail, User, Eye, EyeOff } from "lucide-react";
+import { UserPlus, Mail, User, Eye, EyeOff } from "lucide-react";
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,43 +20,28 @@ const Auth = () => {
     displayName: ""
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Welcome back!",
-        });
-        navigate("/");
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              display_name: formData.displayName,
-            }
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            display_name: formData.displayName,
           }
-        });
+        }
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Success",
-          description: "Account created successfully! Please check your email to verify your account.",
-        });
-      }
+      toast({
+        title: "Success",
+        description: "Account created successfully! Please check your email to verify your account.",
+      });
     } catch (error: any) {
       toast({
         title: "Error",
@@ -75,35 +59,29 @@ const Auth = () => {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-blue-100 rounded-full">
-              <Lock className="h-8 w-8 text-blue-600" />
+              <UserPlus className="h-8 w-8 text-blue-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">
-            {isLogin ? "Welcome Back" : "Create Account"}
-          </CardTitle>
-          <p className="text-gray-600">
-            {isLogin ? "Sign in to your account" : "Join our community"}
-          </p>
+          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+          <p className="text-gray-600">Join our community</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Display Name</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    id="displayName"
-                    type="text"
-                    value={formData.displayName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-                    placeholder="Your display name"
-                    className="pl-10"
-                    required={!isLogin}
-                  />
-                </div>
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  id="displayName"
+                  type="text"
+                  value={formData.displayName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
+                  placeholder="Your display name"
+                  className="pl-10"
+                  required
+                />
               </div>
-            )}
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
@@ -124,14 +102,13 @@ const Auth = () => {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="Enter your password"
-                  className="pl-10 pr-10"
+                  className="pr-10"
                   required
                 />
                 <Button
@@ -151,17 +128,20 @@ const Auth = () => {
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
+              {loading ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
           
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600 mb-2">
+              Are you an admin?
+            </p>
             <Button
               variant="link"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm"
+              onClick={() => navigate('/secure-admin')}
+              className="text-sm font-medium"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              Go to Admin Login
             </Button>
           </div>
         </CardContent>
