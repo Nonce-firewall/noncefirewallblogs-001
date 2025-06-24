@@ -30,7 +30,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialized, setInitialized] = useState(false);
   const { toast } = useToast();
 
   // Fetch user profile from database
@@ -64,32 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         console.log('Initializing auth...');
         
-        // Set up auth state listener first
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            console.log('Auth state changed:', event, session?.user?.email);
-            
-            if (!mounted) return;
-
-            if (session?.user) {
-              setUser(session.user);
-              // Fetch profile data
-              const userProfile = await fetchProfile(session.user.id);
-              if (mounted) {
-                setProfile(userProfile);
-              }
-            } else {
-              setUser(null);
-              setProfile(null);
-            }
-            
-            if (mounted && initialized) {
-              setLoading(false);
-            }
-          }
-        );
-
-        // Get initial session
+        // Get initial session first
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -105,8 +79,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('No initial session found');
         }
 
+        // Set up auth state listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('Auth state changed:', event, session?.user?.email);
+            
+            if (!mounted) return;
+
+            if (session?.user) {
+              setUser(session.user);
+              // Only fetch profile for admin-related operations
+              if (window.location.pathname.includes('/admin') || window.location.pathname.includes('/secure-admin')) {
+                const userProfile = await fetchProfile(session.user.id);
+                if (mounted) {
+                  setProfile(userProfile);
+                }
+              }
+            } else {
+              setUser(null);
+              setProfile(null);
+            }
+          }
+        );
+
         if (mounted) {
-          setInitialized(true);
           setLoading(false);
         }
 
@@ -117,7 +113,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error initializing auth:', error);
         if (mounted) {
           setLoading(false);
-          setInitialized(true);
         }
       }
     };
