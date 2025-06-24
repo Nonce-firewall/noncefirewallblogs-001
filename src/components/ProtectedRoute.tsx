@@ -17,13 +17,13 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     if (!loading) {
       if (!user) {
         console.log('No user found, redirecting to secure-admin');
-        navigate('/secure-admin');
+        navigate('/secure-admin', { replace: true });
         return;
       }
 
-      if (requireAdmin && !profile?.is_admin) {
+      if (requireAdmin && (!profile || !profile.is_admin)) {
         console.log('Admin required but user is not admin, redirecting to secure-admin');
-        navigate('/secure-admin');
+        navigate('/secure-admin', { replace: true });
         return;
       }
     }
@@ -42,12 +42,12 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
   }
 
   // Don't render anything while redirecting
-  if (!user || (requireAdmin && !profile?.is_admin)) {
+  if (!user || (requireAdmin && (!profile || !profile.is_admin))) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting...</p>
+          <p className="text-gray-600">Redirecting to login...</p>
         </div>
       </div>
     );

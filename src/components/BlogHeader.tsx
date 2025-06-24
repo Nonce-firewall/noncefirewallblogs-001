@@ -1,13 +1,19 @@
 
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const BlogHeader = () => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { signOut, user, profile } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -41,6 +47,17 @@ const BlogHeader = () => {
                 <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">
                   View Blog
                 </Link>
+                {user && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleSignOut}
+                    className="flex items-center space-x-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </Button>
+                )}
               </>
             )}
           </nav>
@@ -88,6 +105,20 @@ const BlogHeader = () => {
                   >
                     View Blog
                   </Link>
+                  {user && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        handleSignOut();
+                        setMobileMenuOpen(false);
+                      }}
+                      className="flex items-center justify-center space-x-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </Button>
+                  )}
                 </>
               )}
             </nav>

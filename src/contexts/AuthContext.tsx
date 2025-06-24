@@ -71,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else if (session?.user && mounted) {
           console.log('Initial session found:', session.user.email);
           setUser(session.user);
+          // Always fetch profile for authenticated users
           const userProfile = await fetchProfile(session.user.id);
           if (mounted) {
             setProfile(userProfile);
@@ -88,12 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (session?.user) {
               setUser(session.user);
-              // Only fetch profile for admin-related operations
-              if (window.location.pathname.includes('/admin') || window.location.pathname.includes('/secure-admin')) {
-                const userProfile = await fetchProfile(session.user.id);
-                if (mounted) {
-                  setProfile(userProfile);
-                }
+              // Always fetch profile for authenticated users
+              const userProfile = await fetchProfile(session.user.id);
+              if (mounted) {
+                setProfile(userProfile);
               }
             } else {
               setUser(null);
